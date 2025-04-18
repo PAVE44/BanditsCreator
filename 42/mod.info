@@ -1,0 +1,7 @@
+name=Bandits Creator
+poster=poster.png
+icon=icon.png
+id=BanditsCreator
+description=Customizes Bandits
+author=Slayer
+require=\Bandits
