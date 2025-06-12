@@ -12,8 +12,7 @@ local BUTTON_HGT = FONT_HGT_SMALL + 6
 local NAME_HGT = FONT_HGT_SMALL + 8
 
 function BanditCreationAvatar:createChildren()
-	self.avatarBackgroundTexture = getTexture("media/ui/avatarBackgroundWhite.png")
-
+	-- self.avatarBackgroundTexture = getTexture("media/ui/avatarBackgroundWhite.png")
 	self.avatarPanel = ISUI3DModel:new(2, 2, self.width - 4, self.height - 4 - NAME_HGT)
 	self.avatarPanel.backgroundColor = {r=0, g=0, b=0, a=0.0}
 	self.avatarPanel.borderColor = {r=1, g=1, b=1, a=0.0}
@@ -73,7 +72,9 @@ end
 function BanditCreationAvatar:prerender()
 	ISPanel.prerender(self)
 	-- self:drawRectBorder(self.avatarPanel.x - 2, self.avatarPanel.y - 2, self.avatarPanel.width + 4, self.avatarPanel.height + 4, 1, 0.3, 0.3, 0.3)
-	self:drawTextureScaled(self.avatarBackgroundTexture, self.avatarPanel.x, self.avatarPanel.y, self.avatarPanel.width, self.avatarPanel.height, 1, 0.4, 0.4, 0.4);
+	if self.avatarBackgroundTexture then
+		self:drawTextureScaled(self.avatarBackgroundTexture, self.avatarPanel.x, self.avatarPanel.y, self.avatarPanel.width, self.avatarPanel.height, 1, 1, 1, 1, 1);
+	end
 end
 
 function BanditCreationAvatar:update()
@@ -109,7 +110,12 @@ function BanditCreationAvatar:onDelete(button)
 end
 
 function BanditCreationAvatar:onClick(button)
-	local modal = BanditCreationMain:new(500, 80, 1220, 900, self.bid, self.cid)
+	local screenWidth, screenHeight = getCore():getScreenWidth(), getCore():getScreenHeight()
+	local margin = screenWidth > 1900 and 100 or 0
+	local modalWidth, modalHeight = screenWidth - margin, screenHeight - margin
+	local modalX = (screenWidth / 2) - (modalWidth / 2)
+	local modalY = (screenHeight / 2) - (modalHeight / 2)
+	local modal = BanditCreationMain:new(modalX, modalY, modalWidth, modalHeight, self.bid, self.cid)
     modal:initialise()
     modal:addToUIManager()
 	self.parent:cleanUp()

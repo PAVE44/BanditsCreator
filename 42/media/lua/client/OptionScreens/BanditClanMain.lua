@@ -7,7 +7,6 @@ local BUTTON_HGT = FONT_HGT_SMALL + 6
 
 function BanditClanMain:initialise()
     ISPanel.initialise(self)
-
     self:onAvatarListChange()
 end
 
@@ -15,13 +14,13 @@ function BanditClanMain:onAvatarListChange()
 
     local btnCancelWidth = 100 -- getTextManager():MeasureStringX(UIFont.Small, "Cancel") + 64
     local btnSaveWidth = 100 -- getTextManager():MeasureStringX(UIFont.Small, "Save") + 64
-    local btnCancelX = math.floor(self:getWidth() / 2) - ((btnCancelWidth + btnSaveWidth) / 2) - 4
-    local btnCancelY = math.floor(self:getWidth() / 2) - ((btnCancelWidth + btnSaveWidth) / 2) + btnCancelWidth + 4
+    local btnCancelX = math.floor(self:getWidth() / 2) - ((btnCancelWidth + btnSaveWidth) / 2) - UI_BORDER_SPACING
+    local btnCancelY = math.floor(self:getWidth() / 2) - ((btnCancelWidth + btnSaveWidth) / 2) + btnCancelWidth + UI_BORDER_SPACING
 
     self:cleanUp()
     self:clearChildren()
 
-    self.cancel = ISButton:new(btnCancelX, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - 1, btnCancelWidth, BUTTON_HGT, "Back", self, BanditClanMain.onClick)
+    self.cancel = ISButton:new(btnCancelX, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - UI_BORDER_SPACING, btnCancelWidth, BUTTON_HGT, getText("UI_BanditsCreator_Back"), self, BanditClanMain.onClick)
     self.cancel.internal = "BACK"
     self.cancel.anchorTop = false
     self.cancel.anchorBottom = true
@@ -32,7 +31,7 @@ function BanditClanMain:onAvatarListChange()
     end
     self:addChild(self.cancel)
 
-    self.save = ISButton:new(btnCancelY, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - 1, btnSaveWidth, BUTTON_HGT, "Save", self, BanditClanMain.onClick)
+    self.save = ISButton:new(btnCancelY, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - UI_BORDER_SPACING, btnSaveWidth, BUTTON_HGT, getText("UI_BanditsCreator_Save"), self, BanditClanMain.onClick)
     self.save.internal = "SAVE"
     self.save.anchorTop = false
     self.save.anchorBottom = true
@@ -52,7 +51,12 @@ function BanditClanMain:onAvatarListChange()
     end
 
     if cnt == 0 then
-        local modal = BanditClansMain:new(500, 80, 1220, 900)
+        local screenWidth, screenHeight = getCore():getScreenWidth(), getCore():getScreenHeight()
+        local margin = screenWidth > 1900 and 100 or 0
+        local modalWidth, modalHeight = screenWidth - margin, screenHeight - margin
+        local modalX = (screenWidth / 2) - (modalWidth / 2)
+        local modalY = (screenHeight / 2) - (modalHeight / 2)
+        local modal = BanditClansMain:new(modalX, modalY, modalWidth, modalHeight)
         modal:initialise()
         modal:addToUIManager()
         self:clearChildren()
@@ -62,23 +66,32 @@ function BanditClanMain:onAvatarListChange()
     end
 
     local topY = 60
-    local leftX = 160
+    local leftX = 260
+    local paneWidth = 440
     local avatarWidth = 130
     local avatarHeight = 240
     local avatarSpacing = 20
-    local inRow = 6
 
-    if cnt >= 18 then
+    local inRow = math.floor((self.width - paneWidth) / (avatarWidth + avatarSpacing))
+    local inCol = math.floor((self.height - topY - BUTTON_HGT) / (avatarHeight + avatarSpacing))
+
+    if cnt >= inRow * inCol then
         avatarWidth = 75
         avatarHeight = 120
         avatarSpacing = 5
-        inRow = 11
+        inRow = math.floor((self.width - paneWidth) / (avatarWidth + avatarSpacing))
+        inCol = math.floor((self.height - topY - BUTTON_HGT) / (avatarHeight + avatarSpacing))
     end
 
     local player = getSpecificPlayer(0)
+    local px, py, pz = 0, 0, 0
+    if player then
+        px, py, pz = player:getX(), player:getY(), player:getZ()
+    end
+
     local desc = SurvivorFactory.CreateSurvivor(SurvivorType.Neutral, false)
 
-    local hairColors = desc:getCommonHairColor();
+    local hairColors = desc:getCommonHairColor()
     self.hairColors = {}
     local info = ColorInfo.new()
     for i=1, hairColors:size() do
@@ -89,13 +102,13 @@ function BanditClanMain:onAvatarListChange()
 
     local rowY = 0
 
-    lbl = ISLabel:new(avatarSpacing, topY + rowY, BUTTON_HGT, "Clan Settings", 1, 1, 1, 1, UIFont.Medium, true)
+    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, getText("UI_BanditsCreator_Clan_Settings"), 1, 1, 1, 1, UIFont.Medium, false)
     lbl:initialise()
     lbl:instantiate()
     self:addChild(lbl)
     rowY = rowY + BUTTON_HGT + 8
 
-    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, "Clan name", 1, 1, 1, 1, UIFont.Small, false)
+    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, getText("UI_BanditsCreator_Clan_Name"), 1, 1, 1, 1, UIFont.Small, false)
     lbl:initialise()
     lbl:instantiate()
     self:addChild(lbl)
@@ -106,7 +119,7 @@ function BanditClanMain:onAvatarListChange()
     self:addChild(self.clanNameEntry)
     rowY = rowY + BUTTON_HGT + 8
 
-    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, "Spawn AI", 1, 1, 1, 1, UIFont.Small, false)
+    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, getText("UI_BanditsCreator_Spawn_AI"), 1, 1, 1, 1, UIFont.Small, false)
     lbl:initialise()
     lbl:instantiate()
     self:addChild(lbl)
@@ -115,16 +128,16 @@ function BanditClanMain:onAvatarListChange()
     -- self.boolOptions.tooltip = "test"
     self.boolOptions:initialise()
     self:addChild(self.boolOptions)
-    self.boolOptions:addOption("Friendly", nil, nil, "Will not attack human players.")
-    self.boolOptions:addOption("Companions", nil, nil, "Will follow the player. ")
-    self.boolOptions:addOption("Defenders", nil, nil, "May spawn in barricaded buildings.")
-    self.boolOptions:addOption("Campers", nil, nil, "May spawn with tent base in wilderness.")
-    self.boolOptions:addOption("Assault", nil, nil, "fixme")
-    self.boolOptions:addOption("Wanderer", nil, nil, "fixme")
-    self.boolOptions:addOption("Roadblock", nil, nil, "May organize a road blockade.")
+    self.boolOptions:addOption(getText("UI_BanditsCreator_AI_Friendly"), nil, nil, getText("UI_BanditsCreator_AI_Friendly_Tooltip "))
+    self.boolOptions:addOption(getText("UI_BanditsCreator_AI_Companions"), nil, nil, getText("UI_BanditsCreator_AI_Companions_Tooltip "))
+    self.boolOptions:addOption(getText("UI_BanditsCreator_AI_Defenders"), nil, nil, getText("UI_BanditsCreator_AI_Defenders_Tooltip "))
+    self.boolOptions:addOption(getText("UI_BanditsCreator_AI_Campers"), nil, nil, getText("UI_BanditsCreator_AI_Campers_Tooltip "))
+    self.boolOptions:addOption(getText("UI_BanditsCreator_AI_Assault"), nil, nil, getText("UI_BanditsCreator_AI_Assault_Tooltip "))
+    self.boolOptions:addOption(getText("UI_BanditsCreator_AI_Wanderer"), nil, nil, getText("UI_BanditsCreator_AI_Wanderer_Tooltip "))
+    self.boolOptions:addOption(getText("UI_BanditsCreator_AI_Roadblock"), nil, nil, getText("UI_BanditsCreator_AI_Roadblock_Tooltip "))
     rowY = rowY + (7 * (BUTTON_HGT + UI_BORDER_SPACING))
 
-    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, "Day start/end", 1, 1, 1, 1, UIFont.Small, false)
+    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, getText("UI_BanditsCreator_Day_Start_End"), 1, 1, 1, 1, UIFont.Small, false)
     lbl:initialise()
     lbl:instantiate()
     self:addChild(lbl)
@@ -133,18 +146,18 @@ function BanditClanMain:onAvatarListChange()
     self.dayStartEntry:initialise()
     self.dayStartEntry:instantiate()
     self.dayStartEntry:setOnlyNumbers(true)
-    self.dayStartEntry.tooltip = "Timeframe in which clan may spawn. \nIn signle player games, days number refer to the world age. \nIn multiplayer games, days refer to the number of survived days for a player near whom the spawn will occur. \n In both cases days are counted from zero."
+    self.dayStartEntry.tooltip = getText("UI_BanditsCreator_Day_Start_End_Tooltip")
     self:addChild(self.dayStartEntry)
 
     self.dayEndEntry = ISTextEntryBox:new("", leftX + 36 + UI_BORDER_SPACING, topY + rowY, 36, BUTTON_HGT)
     self.dayEndEntry:initialise()
     self.dayEndEntry:instantiate()
     self.dayEndEntry:setOnlyNumbers(true)
-    self.dayEndEntry.tooltip = "Timeframe in which clan may spawn. \nIn signle player games, days number refer to the world age. \nIn multiplayer games, days refer to the number of survived days for a player near whom the spawn will occur. \n In both cases days are counted from zero."
+    self.dayEndEntry.tooltip = getText("UI_BanditsCreator_Day_Start_End_Tooltip")
     self:addChild(self.dayEndEntry)
     rowY = rowY + BUTTON_HGT + 8
 
-    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, "Hourly spawn chance (%)", 1, 1, 1, 1, UIFont.Small, false)
+    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, getText("UI_BanditsCreator_Hourly_Spawn_Chance"), 1, 1, 1, 1, UIFont.Small, false)
     lbl:initialise()
     lbl:instantiate()
     self:addChild(lbl)
@@ -153,11 +166,11 @@ function BanditClanMain:onAvatarListChange()
     self.spawnChanceEntry:initialise()
     self.spawnChanceEntry:instantiate()
     self.spawnChanceEntry:setOnlyNumbers(true)
-    self.spawnChanceEntry.tooltip = "Average nominal chance of a spawn per hour. "
+    self.spawnChanceEntry.tooltip = getText("UI_BanditsCreator_Hourly_Spawn_Chance_Tooltip")
     self:addChild(self.spawnChanceEntry)
     rowY = rowY + BUTTON_HGT + 8
 
-    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, "Group size min/max", 1, 1, 1, 1, UIFont.Small, false)
+    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, getText("UI_BanditsCreator_Group_Size"), 1, 1, 1, 1, UIFont.Small, false)
     lbl:initialise()
     lbl:instantiate()
     self:addChild(lbl)
@@ -166,28 +179,31 @@ function BanditClanMain:onAvatarListChange()
     self.groupMinEntry:initialise()
     self.groupMinEntry:instantiate()
     self.groupMinEntry:setOnlyNumbers(true)
-    self.groupMinEntry.tooltip = "Minimum number of bandits during one spawn."
+    self.groupMinEntry.tooltip = getText("UI_BanditsCreator_Group_Size_Min_Tooltip")
     self:addChild(self.groupMinEntry)
 
     self.groupMaxEntry = ISTextEntryBox:new("", leftX + 36 + UI_BORDER_SPACING, topY + rowY, 36, BUTTON_HGT)
     self.groupMaxEntry:initialise()
     self.groupMaxEntry:instantiate()
     self.groupMaxEntry:setOnlyNumbers(true)
-    self.groupMaxEntry.tooltip = "Maximum number of bandits during one spawn. Total members of the clan must be equal or higher that the max value."
+    self.groupMaxEntry.tooltip = getText("UI_BanditsCreator_Group_Size_Max_Tooltip")
     self:addChild(self.groupMaxEntry)
     rowY = rowY + BUTTON_HGT + 8
 
-    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, "Zone occurance", 1, 1, 1, 1, UIFont.Small, false)
+    lbl = ISLabel:new(leftX - UI_BORDER_SPACING, topY + rowY, BUTTON_HGT, getText("UI_BanditsCreator_Zone_Occurance"), 1, 1, 1, 1, UIFont.Small, false)
     lbl:initialise()
     lbl:instantiate()
     self:addChild(lbl)
 
     self.zoneCombo = ISComboBox:new(leftX, topY + rowY, 130, BUTTON_HGT, self)
-    self.zoneCombo:initialise();
-    self.zoneCombo:addOption("Any")
-    self.zoneCombo:addOption("Only urban")
-    self.zoneCombo:addOption("Only wilderness")
-    self.zoneCombo:setToolTipMap({["Any"] = "Bandits have the same chance to spawn in any zone.", ["Only urban"] = "Bandits will spawn only in urban areas.", ["Only wilderness"] = "Bandits will only spawn outside of cities."})
+    self.zoneCombo:initialise()
+    self.zoneCombo:addOption(getText("UI_BanditsCreator_Zone_Occurance_Any"))
+    self.zoneCombo:addOption(getText("UI_BanditsCreator_Zone_Occurance_Urban"))
+    self.zoneCombo:addOption(getText("UI_BanditsCreator_Zone_Occurance_Wilderness"))
+    self.zoneCombo:setToolTipMap({
+        [getText("UI_BanditsCreator_Zone_Occurance_Any")] = getText("UI_BanditsCreator_Zone_Occurance_Any_Tooltip"), 
+        [getText("UI_BanditsCreator_Zone_Occurance_Urban")] = getText("UI_BanditsCreator_Zone_Occurance_Urban_Tooltip"), 
+        [getText("UI_BanditsCreator_Zone_Occurance_Wilderness")] = getText("UI_BanditsCreator_Zone_Occurance_Wilderness_Tooltip")})
     self.zoneCombo.borderColor = {r=0.4, g=0.4, b=0.4, a=1}
     self:addChild(self.zoneCombo)
     rowY = rowY + BUTTON_HGT + 8
@@ -199,7 +215,7 @@ function BanditClanMain:onAvatarListChange()
     self:addChild(lbl)
 
     self.zoneTypeCombo = ISComboBox:new(leftX, topY + rowY, 130, BUTTON_HGT, self)
-    self.zoneTypeCombo:initialise();
+    self.zoneTypeCombo:initialise()
     self.zoneTypeCombo:addOption("Any")
 
     for zone, tab in pairs(ZombiesZoneDefinition) do
@@ -212,10 +228,11 @@ function BanditClanMain:onAvatarListChange()
 
     self:loadConfig()
 
-    leftX = 300
+    leftX = paneWidth
 
     self.models = {}
     self.avatarPanel = {}
+    local tex = getTexture("media/ui/avatarbg.png")
     local total = 0
     local i = 0
     local j = 0
@@ -232,10 +249,11 @@ function BanditClanMain:onAvatarListChange()
             self.avatarPanel[bid].controls = false
             self.avatarPanel[bid].clickable = true
             self.avatarPanel[bid].name = data.general.name
+            self.avatarPanel[bid].avatarBackgroundTexture = tex
             self:addChild(self.avatarPanel[bid])
 
-            self.models[bid] = IsoPlayer.new(getCell(), desc, player:getX(), player:getY(), player:getZ())
-            self.models[bid]:setSceneCulled(false)
+            self.models[bid] = IsoPlayer.new(getCell(), desc, px, py, pz)
+            -- self.models[bid]:setSceneCulled(false)
             self.models[bid]:setIsAiming(true)
             self.models[bid]:setNPC(true)
             self.models[bid]:setGodMod(true)
@@ -270,6 +288,15 @@ function BanditClanMain:onAvatarListChange()
                     self.models[bid]:setWornItem(bodyLocation, nil)
                     local item = BanditCompatibility.InstanceItem(itemType)
                     if item then
+                        if data.tint and data.tint[bodyLocation] then
+                            local visual = item:getVisual()
+                            if visual then
+                                local cint = data.tint[bodyLocation]
+                                local color = BanditUtils.dec2rgb(cint)
+                                local immutableColor = ImmutableColor.new(color.r, color.g, color.b, 1)
+                                visual:setTint(immutableColor)
+                            end
+                        end
                         self.models[bid]:setWornItem(bodyLocation, item)
                     end
                 end
@@ -298,6 +325,11 @@ function BanditClanMain:onAvatarListChange()
             if data.bag then
                 local item = BanditCompatibility.InstanceItem(data.bag.name)
                 if item then
+                    local visual = item:getVisual()
+                    if visual then
+                        local immutableColor = ImmutableColor.new(0.1, 0.1, 0.1, 1)
+                        visual:setTint(immutableColor)
+                    end
                     self.models[bid]:setWornItem(item:canBeEquipped(), item)
                 end
             end
@@ -325,8 +357,8 @@ function BanditClanMain:onAvatarListChange()
         self.avatarPanel[bid].add = true
         self:addChild(self.avatarPanel[bid])
 
-        self.models[bid] = IsoPlayer.new(getCell(), desc, player:getX(), player:getY(), player:getZ())
-        self.models[bid]:setSceneCulled(false)
+        self.models[bid] = IsoPlayer.new(getCell(), desc, px, py, pz)
+        -- self.models[bid]:setSceneCulled(false)
         self.models[bid]:setNPC(true)
         self.models[bid]:setGodMod(true)
         self.models[bid]:setInvisible(true)
@@ -380,11 +412,31 @@ function BanditClanMain:saveConfig()
     data.spawn.wanderer = self.boolOptions:isSelected(6)
     data.spawn.roadblock = self.boolOptions:isSelected(7)
 
-    data.spawn.dayStart = BanditUtils.SanitizeString(self.dayStartEntry:getText())
-    data.spawn.dayEnd = BanditUtils.SanitizeString(self.dayEndEntry:getText())
-    data.spawn.spawnChance = BanditUtils.SanitizeString(self.spawnChanceEntry:getText())
-    data.spawn.groupMin = BanditUtils.SanitizeString(self.groupMinEntry:getText())
-    data.spawn.groupMax = BanditUtils.SanitizeString(self.groupMaxEntry:getText())
+    local dayStart = tonumber(BanditUtils.SanitizeString(self.dayStartEntry:getText()))
+    local dayEnd = tonumber(BanditUtils.SanitizeString(self.dayEndEntry:getText()))
+
+    if not dayStart then dayStart = 0 end 
+    if not dayEnd then dayEnd = 10000 end
+    if dayStart < 0 then dayStart = 0 end
+    if dayEnd < dayStart then dayEnd = dayStart end
+    data.spawn.dayStart = dayStart
+    data.spawn.dayEnd = dayEnd
+    
+    local spawnChance = tonumber(BanditUtils.SanitizeString(self.spawnChanceEntry:getText()))
+    if not spawnChance then spawnChance = 0.10 end
+    if spawnChance < 0 then spawnChance = 0 end
+    if spawnChance > 100 then spawnChance = 100 end
+    data.spawn.spawnChance = spawnChance
+
+    local groupMin = tonumber(BanditUtils.SanitizeString(self.groupMinEntry:getText()))
+    local groupMax = tonumber(BanditUtils.SanitizeString(self.groupMaxEntry:getText()))
+    if not groupMin then groupMin = 1 end 
+    if not groupMax then groupMax = 32 end
+    if groupMin < 1 then groupMin = 1 end
+    if groupMax < groupMin then groupMax = groupMin end
+    data.spawn.groupMin = groupMin
+    data.spawn.groupMax = groupMax
+
     data.spawn.zone = self.zoneCombo.selected - 1
 
     BanditCustom.Save()
@@ -406,13 +458,16 @@ end
 function BanditClanMain:cleanUp()
     local toRem = {}
     if self.models then
+        local player = getSpecificPlayer(0)
         for bid, model in pairs(self.models) do
             table.insert(toRem, bid)
         end
         for _, bid in pairs(toRem) do
             self.avatarPanel[bid]:setCharacter(nil)
             self.models[bid]:removeFromSquare()
-            self.models[bid]:removeFromWorld()
+            if player then
+                self.models[bid]:removeFromWorld()
+            end
             self.models[bid]:removeSaveFile()
             self.models[bid] = nil
         end
@@ -426,7 +481,12 @@ function BanditClanMain:onClick(button)
 
     self:cleanUp()
 
-    local modal = BanditClansMain:new(500, 80, 1220, 900)
+    local screenWidth, screenHeight = getCore():getScreenWidth(), getCore():getScreenHeight()
+    local margin = screenWidth > 1900 and 100 or 0
+    local modalWidth, modalHeight = screenWidth - margin, screenHeight - margin
+    local modalX = (screenWidth / 2) - (modalWidth / 2)
+    local modalY = (screenHeight / 2) - (modalHeight / 2)
+    local modal = BanditClansMain:new(modalX, modalY, modalWidth, modalHeight)
     modal:initialise()
     modal:addToUIManager()
     self:clearChildren()
@@ -439,24 +499,24 @@ function BanditClanMain:update()
 end
 
 function BanditClanMain:prerender()
-    ISPanel.prerender(self);
-    self:drawTextCentre("BANDIT CLAN", self.width / 2, UI_BORDER_SPACING + 5, 1, 1, 1, 1, UIFont.Title);
+    ISPanel.prerender(self)
+    self:drawTextCentre(getText("UI_BanditsCreator_Bandit_Clan"), self.width / 2, UI_BORDER_SPACING + 5, 1, 1, 1, 1, UIFont.Title)
 end
 
 function BanditClanMain:new(x, y, width, height, cid)
     local o = {}
-    x = getCore():getScreenWidth() / 2 - (width / 2);
-    y = getCore():getScreenHeight() / 2 - (height / 2);
-    o = ISPanel:new(x, y, width, height);
+    x = getCore():getScreenWidth() / 2 - (width / 2)
+    y = getCore():getScreenHeight() / 2 - (height / 2)
+    o = ISPanel:new(x, y, width, height)
     setmetatable(o, self)
     self.__index = self
-    o.borderColor = {r=0.4, g=0.4, b=0.4, a=1};
-    o.backgroundColor = {r=0, g=0, b=0, a=0.8};
-    o.width = width;
-    o.height = height;
-    o.moveWithMouse = true;
+    o.borderColor = {r=0.4, g=0.4, b=0.4, a=1}
+    o.backgroundColor = {r=0, g=0, b=0, a=0.8}
+    o.width = width
+    o.height = height
+    o.moveWithMouse = true
     o.cid = cid
-    BanditClanMain.instance = o;
-    ISDebugMenu.RegisterClass(self);
-    return o;
+    BanditClanMain.instance = o
+    ISDebugMenu.RegisterClass(self)
+    return o
 end

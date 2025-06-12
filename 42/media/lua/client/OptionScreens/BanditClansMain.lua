@@ -13,7 +13,7 @@ function BanditClansMain:initialise()
     local btnPushWidth = 150 -- getTextManager():MeasureStringX(UIFont.Small, "Push To Server") + 64
     local btnCloseX = math.floor(self:getWidth() / 2) - ((btnCloseWidth ) / 2)
 
-    self.cancel = ISButton:new(btnCloseX, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - 1, btnCloseWidth, BUTTON_HGT, "Close", self, BanditClansMain.onClick)
+    self.cancel = ISButton:new(btnCloseX, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - UI_BORDER_SPACING, btnCloseWidth, BUTTON_HGT, getText("UI_BanditsCreator_Close"), self, BanditClansMain.onClick)
     self.cancel.internal = "CLOSE"
     self.cancel.anchorTop = false
     self.cancel.anchorBottom = true
@@ -24,32 +24,37 @@ function BanditClansMain:initialise()
     end
     self:addChild(self.cancel)
 
-    self.pull = ISButton:new(UI_BORDER_SPACING, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - 1, btnPullWidth, BUTTON_HGT, "Pull From Server", self, BanditClansMain.onClick)
-    self.pull.internal = "PULL"
-    self.pull.anchorTop = false
-    self.pull.anchorBottom = true
-    self.pull:initialise()
-    self.pull:instantiate()
-    if BanditCompatibility.GetGameVersion() >= 42 then
-        self.pull:enableCancelColor()
-    end
-    self:addChild(self.pull)
+    if getWorld():getGameMode() == "Multiplayer" and isIngameState() and (isDebugEnabled() or isAdmin()) then
+        --[[
+        self.pull = ISButton:new(UI_BORDER_SPACING, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - UI_BORDER_SPACING, btnPullWidth, BUTTON_HGT, getText("UI_BanditsCreator_Pull_From_Server"), self, BanditClansMain.onClick)
+        self.pull.internal = "PULL"
+        self.pull.anchorTop = false
+        self.pull.anchorBottom = true
+        self.pull:initialise()
+        self.pull:instantiate()
+        if BanditCompatibility.GetGameVersion() >= 42 then
+            self.pull:enableCancelColor()
+        end
+        self:addChild(self.pull)
+        ]]
 
-    self.push = ISButton:new(UI_BORDER_SPACING + btnPullWidth + UI_BORDER_SPACING, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - 1, btnPushWidth, BUTTON_HGT, "Push To Server", self, BanditClansMain.onClick)
-    self.push.internal = "PUSH"
-    self.push.anchorTop = false
-    self.push.anchorBottom = true
-    self.push:initialise()
-    self.push:instantiate()
-    if BanditCompatibility.GetGameVersion() >= 42 then
-        self.push:enableCancelColor()
+        self.push = ISButton:new(UI_BORDER_SPACING, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - UI_BORDER_SPACING, btnPushWidth, BUTTON_HGT, getText("UI_BanditsCreator_Push_To_Server"), self, BanditClansMain.onClick)
+        self.push.internal = "PUSH"
+        self.push.anchorTop = false
+        self.push.anchorBottom = true
+        self.push:initialise()
+        self.push:instantiate()
+        if BanditCompatibility.GetGameVersion() >= 42 then
+            self.push:enableCancelColor()
+        end
+        self:addChild(self.push)
     end
-    self:addChild(self.push)
 
+    -- 1220
     local topY = 60
-    local clanButtonWidth = 130
-    local clanButtonHeight = 65
     local clanButtonSpacing = 20
+    local clanButtonWidth = (self.width / 8) - clanButtonSpacing - (UI_BORDER_SPACING / 4)
+    local clanButtonHeight = 65
 
     local rowY = 0
 
@@ -86,7 +91,7 @@ function BanditClansMain:initialise()
         x = i * (clanButtonWidth + clanButtonSpacing) + clanButtonSpacing
         y = topY + rowY + j * (clanButtonHeight + clanButtonSpacing)
 
-        self.clanButtonNew = BanditButtonCounter:new(x, y, clanButtonWidth, clanButtonHeight, "New Clan", self, self.onClick, self.onRightClick)
+        self.clanButtonNew = BanditButtonCounter:new(x, y, clanButtonWidth, clanButtonHeight, getText("UI_BanditsCreator_New_Clan"), self, self.onClick, self.onRightClick)
         self.clanButtonNew.internal = "NEWCLAN"
 		self.clanButtonNew.borderColor = {r=0.4, g=0.4, b=0.4, a=1}
 		self.clanButtonNew:initialise()
@@ -99,17 +104,30 @@ end
 function BanditClansMain:onClick(button)
     if button.internal == "CLOSE" then
         self:removeFromUIManager()
+        if MainScreen and MainScreen.instance then
+            MainScreen.instance.bottomPanel:setVisible(true)
+        end
         self:close()
     elseif button.internal == "EDITCLAN" then
-        local modal = BanditClanMain:new(500, 80, 1220, 900, button.cid)
+        local screenWidth, screenHeight = getCore():getScreenWidth(), getCore():getScreenHeight()
+        local margin = screenWidth > 1900 and 100 or 0
+        local modalWidth, modalHeight = screenWidth - margin, screenHeight - margin
+        local modalX = (screenWidth / 2) - (modalWidth / 2)
+        local modalY = (screenHeight / 2) - (modalHeight / 2)
+        local modal = BanditClanMain:new(modalX, modalY, modalWidth, modalHeight, button.cid)
         modal:initialise()
         modal:addToUIManager()
         self:removeFromUIManager()
         self:close()
     elseif button.internal == "NEWCLAN" then
+        local screenWidth, screenHeight = getCore():getScreenWidth(), getCore():getScreenHeight()
+        local margin = screenWidth > 1900 and 100 or 0
+        local modalWidth, modalHeight = screenWidth - margin, screenHeight - margin
+        local modalX = (screenWidth / 2) - (modalWidth / 2)
+        local modalY = (screenHeight / 2) - (modalHeight / 2)
         local cid = BanditCustom.GetNextId()
         local bid = BanditCustom.GetNextId()
-        local modal = BanditCreationMain:new(500, 80, 1220, 900, bid, cid)
+        local modal = BanditCreationMain:new(modalX, modalY, modalWidth, modalHeight, bid, cid)
         modal:initialise()
         modal:addToUIManager()
         self:removeFromUIManager()
@@ -140,23 +158,23 @@ function BanditClansMain:update()
 end
 
 function BanditClansMain:prerender()
-    ISPanel.prerender(self);
-    self:drawTextCentre("BANDIT CLANS", self.width / 2, UI_BORDER_SPACING + 5, 1, 1, 1, 1, UIFont.Title);
+    ISPanel.prerender(self)
+    self:drawTextCentre(getText("UI_BanditsCreator_Bandit_Clans"), self.width / 2, UI_BORDER_SPACING + 5, 1, 1, 1, 1, UIFont.Title)
 end
 
 function BanditClansMain:new(x, y, width, height)
     local o = {}
-    x = getCore():getScreenWidth() / 2 - (width / 2);
-    y = getCore():getScreenHeight() / 2 - (height / 2);
-    o = ISPanel:new(x, y, width, height);
+    x = getCore():getScreenWidth() / 2 - (width / 2)
+    y = getCore():getScreenHeight() / 2 - (height / 2)
+    o = ISPanel:new(x, y, width, height)
     setmetatable(o, self)
     self.__index = self
-    o.borderColor = {r=0.4, g=0.4, b=0.4, a=1};
-    o.backgroundColor = {r=0, g=0, b=0, a=0.8};
-    o.width = width;
-    o.height = height;
-    o.moveWithMouse = true;
-    BanditClansMain.instance = o;
-    ISDebugMenu.RegisterClass(self);
-    return o;
+    o.borderColor = {r=0.4, g=0.4, b=0.4, a=1}
+    o.backgroundColor = {r=0, g=0, b=0, a=0.8}
+    o.width = width
+    o.height = height
+    o.moveWithMouse = true
+    BanditClansMain.instance = o
+    ISDebugMenu.RegisterClass(self)
+    return o
 end

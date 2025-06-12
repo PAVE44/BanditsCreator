@@ -35,7 +35,7 @@ function BanditButtonCounter:onMouseUp(x, y)
         return;
     end
     if self.enable and (process or self.allowMouseUpProcessing) then
-        getSoundManager():playUISound(self.sounds.activate)
+        getSoundManager():playUISound(self.sounds.add)
         self.onclick(self.target, self, self.onClickArgs[1], self.onClickArgs[2], self.onClickArgs[3], self.onClickArgs[4]);
 	    --print(self.title);
     end
@@ -55,7 +55,7 @@ function BanditButtonCounter:onRightMouseUp(x, y)
         return;
     end
     if self.enable and (process or self.allowMouseUpProcessing) then
-        getSoundManager():playUISound(self.sounds.activate)
+        getSoundManager():playUISound(self.sounds.substract)
         self.onrclick(self.target, self, self.onClickArgs[1], self.onClickArgs[2], self.onClickArgs[3], self.onClickArgs[4]);
 	    --print(self.title);
     end
@@ -102,7 +102,7 @@ function BanditButtonCounter:forceClick()
     if self.repeatWhilePressedFunc then
 		return self.repeatWhilePressedFunc(self.target, self)
     end
-    getSoundManager():playUISound(self.sounds.activate)
+    getSoundManager():playUISound(self.sounds.add)
     self.onclick(self.target, self, self.onClickArgs[1], self.onClickArgs[2], self.onClickArgs[3], self.onClickArgs[4]);
 end
 
@@ -500,7 +500,8 @@ function BanditButtonCounter:new (x, y, width, height, title, clicktarget, oncli
     o.joypadTextureWH = 32
 	o.repeatWhilePressedTimer = 500;
     o.sounds = {}
-    o.sounds.activate = "UIActivateButton"
+    o.sounds.add = "UIActivateButton"
+	o.sounds.substract = "UIActivateButton"
 	o.originalWidth = width;
 	o.originalHeight = height;
 	o.textureBackground = nil;

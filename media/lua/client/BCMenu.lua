@@ -9,18 +9,14 @@
 BCMenu = BCMenu or {}
 
 function BCMenu.BanditCreator(player)
-    local modal = BanditClansMain:new(500, 80, 1220, 900)
+    local screenWidth, screenHeight = getCore():getScreenWidth(), getCore():getScreenHeight()
+    local margin = screenWidth > 1900 and 100 or 0
+    local modalWidth, modalHeight = screenWidth - margin, screenHeight - margin
+    local modalX = (screenWidth / 2) - (modalWidth / 2)
+    local modalY = (screenHeight / 2) - (modalHeight / 2)
+    local modal = BanditClansMain:new(modalX, modalY, modalWidth, modalHeight)
     modal:initialise()
     modal:addToUIManager()
-end
-
-function BCMenu.SpawnClan(player, square, cid)
-    local args = {}
-    args.cid = cid
-    args.x = square:getX()
-    args.y = square:getY()
-    args.z = square:getZ()
-    sendClientCommand(player, 'Spawner', 'Type', args)
 end
 
 function BCMenu.WorldContextMenuPre(playerID, context, worldobjects, test)
@@ -29,18 +25,7 @@ function BCMenu.WorldContextMenuPre(playerID, context, worldobjects, test)
 
     if isDebugEnabled() or isAdmin() then
         context:addOption("Bandit Creator", player, BCMenu.BanditCreator)
-
-        BanditCustom.Load()
-        local clanData  = BanditCustom.ClanGetAllSorted()
-        local clanSpawnOption = context:addOption("Spawn Bandit Clan")
-        local clanSpawnMenu = context:getNew(context)
-        context:addSubMenu(clanSpawnOption, clanSpawnMenu)
-        for cid, clan in pairs(clanData) do
-            clanSpawnMenu:addOption("Clan " .. clan.general.name, player, BCMenu.SpawnClan, square, cid)
-        end
     end
-
-    
 end
 
 Events.OnPreFillWorldObjectContextMenu.Add(BCMenu.WorldContextMenuPre)

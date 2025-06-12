@@ -8,43 +8,8 @@ local UI_BORDER_SPACING = 10
 local BUTTON_HGT = FONT_HGT_SMALL + 6
 local LABEL_HGT = FONT_HGT_MEDIUM + 6
 
-function BanditItemsListTable:initialise()
-    ISPanel.initialise(self);
-
-    local btnCancelWidth = 100 -- getTextManager():MeasureStringX(UIFont.Small, "Close") + 64
-    local btnCancelX = math.floor(self:getWidth() / 2) - (btnCancelWidth / 2)
-
-    self.cancel = ISButton:new(btnCancelX, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - 1, btnCancelWidth, BUTTON_HGT, "Close", self, BanditItemsListTable.onClick)
-    self.cancel.internal = "CLOSE"
-    self.cancel.anchorTop = false
-    self.cancel.anchorBottom = true
-    self.cancel:initialise()
-    self.cancel:instantiate()
-    if BanditCompatibility.GetGameVersion() >= 42 then
-        self.cancel:enableCancelColor()
-    end
-    self:addChild(self.cancel)
-
-    self.datas = ISScrollingListBox:new(0, 0, self.width, self.height - BUTTON_HGT - 24)
-    self.datas:initialise()
-    self.datas:instantiate()
-    self.datas.itemheight = 48
-    self.datas.selected = 0
-    self.datas.joypadParent = self
-    self.datas.font = UIFont.NewSmall
-    self.datas.doDrawItem = self.drawDatas
-    self.datas.drawBorder = true
---    self.datas.parent = self;
-    self.datas:addColumn("Icon", 0)
-    self.datas:addColumn("Type", self.datas.itemheight)
-    self.datas:addColumn("Name", 384)
-    self.datas:setOnMouseDoubleClick(self, BanditItemsListTable.addItem)
-    self:addChild(self.datas)
-
-    local internal = self.dropbox.internal
-    local mode = self.dropbox.mode
+local function getItems(mode, internal, search)
     local items = {}
-
     if mode == "outfit" then
         items = getAllItemsForBodyLocation(internal)
     elseif mode == "carriable" then
@@ -76,7 +41,64 @@ function BanditItemsListTable:initialise()
         end
     end
 
+    if search and search ~= "" then
+        local search = string.lower(search)
+        for i = #items, 1, -1 do
+            local item = string.lower(items[i])
+            
+            if not string.find(item, search, 1, true) then
+                table.remove(items, i)
+            end
+        end
+    end
+
     table.sort(items, function(a,b) return not string.sort(a, b) end)
+    return items
+end
+
+function BanditItemsListTable:initialise()
+    ISPanel.initialise(self);
+
+    local btnCancelWidth = 100 -- getTextManager():MeasureStringX(UIFont.Small, "Close") + 64
+    local btnCancelX = math.floor(self:getWidth() / 2) - (btnCancelWidth / 2)
+
+    self.cancel = ISButton:new(btnCancelX, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - 1, btnCancelWidth, BUTTON_HGT, getText("UI_BanditsCreator_Close"), self, BanditItemsListTable.onClick)
+    self.cancel.internal = "CLOSE"
+    self.cancel.anchorTop = false
+    self.cancel.anchorBottom = true
+    self.cancel:initialise()
+    self.cancel:instantiate()
+    if BanditCompatibility.GetGameVersion() >= 42 then
+        self.cancel:enableCancelColor()
+    end
+    self:addChild(self.cancel)
+
+    self.searchEntry = ISTextEntryBox:new("", UI_BORDER_SPACING, self:getHeight() - UI_BORDER_SPACING - BUTTON_HGT - 1, 100, BUTTON_HGT)
+    self.searchEntry:initialise()
+    self.searchEntry:instantiate()
+    self.searchEntry.onCommandEntered = BanditItemsListTable.changeFilter 
+    self:addChild(self.searchEntry)
+    self.searchEntry:focus()
+
+    self.datas = ISScrollingListBox:new(0, 0, self.width, self.height - BUTTON_HGT - 24)
+    self.datas:initialise()
+    self.datas:instantiate()
+    self.datas.itemheight = 48
+    self.datas.selected = 0
+    self.datas.joypadParent = self
+    self.datas.font = UIFont.NewSmall
+    self.datas.doDrawItem = self.drawDatas
+    self.datas.drawBorder = false
+--    self.datas.parent = self;
+    self.datas:addColumn("Icon", 0)
+    self.datas:addColumn("Type", self.datas.itemheight)
+    self.datas:addColumn("Name", 384)
+    self.datas:setOnMouseDoubleClick(self, BanditItemsListTable.addItem)
+    self:addChild(self.datas)
+
+    local internal = self.dropbox.internal
+    local mode = self.dropbox.mode
+    local items = getItems(mode, internal)
 
     for i, itemType in pairs(items) do
         local item = BanditCompatibility.InstanceItem(itemType)
@@ -86,45 +108,39 @@ function BanditItemsListTable:initialise()
 
     self.buttons = {}
 
-    --[[
-    local spacing = 8
-    local size = 64
-    local col = 0
-    local row = 0
-    for i, itemType in pairs(self.items) do
-        
+end
+
+function BanditItemsListTable:changeFilter()
+    local search = self:getText()
+    self.parent.datas:clear()
+    local internal = self.parent.dropbox.internal
+    local mode = self.parent.dropbox.mode
+
+    local items = getItems(mode, internal, search)
+
+    for i, itemType in pairs(items) do
         local item = BanditCompatibility.InstanceItem(itemType)
-        local tex = item:getTexture()
-        local name = item:getName()
-
-        local x = col * (size + spacing) + spacing
-        local y = row * (size + spacing + FONT_HGT_SMALL) + spacing
-        self.buttons[itemType] = ISButton:new(x, y, size, size, "", self, BanditItemsListTable.onClick)
-        self.buttons[itemType].internal = itemType
-        self.buttons[itemType]:setTooltip(name)
-        self.buttons[itemType]:setImage(tex)
-        self.buttons[itemType]:forceImageSize(48, 48)
-        self.buttons[itemType]:initialise()
-        self.buttons[itemType]:instantiate()
-        self:addChild(self.buttons[itemType])
-
-        local label = ISLabel:new(x + size, y + size, BUTTON_HGT, item:getType(), 1, 1, 1, 1, UIFont.Small)
-        label:initialise()
-        self:addChild(label)
-
-        col = col + 1
-        if col == 8 then
-            col = 0
-            row = row + 1
-        end
+        self.parent.datas:addItem(item:getDisplayName(), item)
     end
-    ]]
-
-
 end
 
 function BanditItemsListTable:addItem(item)
+    local sound
+    if instanceof (item, "Clothing") then
+        sound = "PutItemInBag"
+    elseif instanceof(item, "HandWeapon") then
+        sound = item:getRackSound()
+        if not sound then
+            sound = item:getBringToBearSound()
+        end
+        if not sound then
+            sound = "PutItemInBag"
+        end
+    end
     self.dropbox:setStoredItem(item)
+    if sound then
+        getSoundManager():playUISound(sound)
+    end
     self.parent:onClothingChanged()
 end
 
