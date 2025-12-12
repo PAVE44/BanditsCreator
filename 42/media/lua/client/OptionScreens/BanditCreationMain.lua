@@ -607,9 +607,9 @@ function BanditCreationMain:onClothingChanged()
 
     -- reset
     for bodyLocation, dropbox in pairs(self.clothing) do
-        self.model:setWornItem(bodyLocation, nil)
+        self.model:setWornItem(ItemBodyLocation.get(ResourceLocation.of(bodyLocation)), nil)
     end
-    self.model:setWornItem("Back", nil)
+    self.model:setWornItem(ItemBodyLocation.get(ResourceLocation.of("Back")), nil)
     self.model:clearAttachedItems()
 
     -- makeup
@@ -619,7 +619,7 @@ function BanditCreationMain:onClothingChanged()
     for i=1, #combos do
         local combo = self[combos[i]]
         if combo then
-            self.model:setWornItem(combo.internal, nil)
+            self.model:setWornItem(ItemBodyLocation.get(ResourceLocation.of(combo.internal)), nil)
             local itemType = combo:getOptionData(combo.selected)
             if itemType then
                 local makeup = BanditCompatibility.InstanceItem(itemType)
@@ -640,7 +640,7 @@ function BanditCreationMain:onClothingChanged()
                 local immutableColor = ImmutableColor.new(color.r, color.g, color.b, 1)
                 visual:setTint(immutableColor)
             end
-            self.model:setWornItem(bodyLocation, item)
+            self.model:setWornItem(ItemBodyLocation.get(ResourceLocation.of(bodyLocation)), item)
         end
     end
 
@@ -666,7 +666,7 @@ function BanditCreationMain:onClothingChanged()
             self.ammo[slot]:setVisible(false)
         end
         local weapon = self.weapons[slot].storedItem
-        if weapon then
+        if weapon and slot ~= "melee" then
 
             local partList = weapon:getAllWeaponParts()
             for i=1, partList:size() do
@@ -696,14 +696,9 @@ function BanditCreationMain:onClothingChanged()
 
             local attachmentType = weapon:getAttachmentType()
             -- local magazineType = weapon:getMagazineType()
-            local ammoType = weapon:getAmmoType()
+            local ammoType = weapon:getAmmoType():getItemKey()
             local ammoBoxType = weapon:getAmmoBox()
-            local ammoBox
-            if ammoType and ammoBoxType then
-                local mod = ammoType:match("([^%.]+)")
-                ammoBoxType = mod .. "." .. ammoBoxType
-                ammoBox = BanditCompatibility.InstanceItem(ammoBoxType)
-            end
+            local ammoBox = BanditCompatibility.InstanceItem(ammoBoxType)
             
             for _, def in pairs(ISHotbarAttachDefinition) do
                 if def.type == "HolsterRight" or def.type == "Back" or def.type == "SmallBeltLeft" then

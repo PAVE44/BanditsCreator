@@ -75,7 +75,7 @@ local function getModel(bid)
 
     if data.clothing then
         for bodyLocation, itemType in pairs(data.clothing) do
-            model:setWornItem(bodyLocation, nil)
+            model:setWornItem(ItemBodyLocation.get(ResourceLocation.of(bodyLocation)), nil)
             local item = BanditCompatibility.InstanceItem(itemType)
             if item then
                 if data.tint and data.tint[bodyLocation] then
@@ -87,7 +87,7 @@ local function getModel(bid)
                         visual:setTint(immutableColor)
                     end
                 end
-                model:setWornItem(bodyLocation, item)
+                model:setWornItem(ItemBodyLocation.get(ResourceLocation.of(bodyLocation)), item)
             end
         end
     end

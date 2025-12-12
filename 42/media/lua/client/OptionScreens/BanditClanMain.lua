@@ -285,7 +285,7 @@ function BanditClanMain:onAvatarListChange()
 
             if data.clothing then
                 for bodyLocation, itemType in pairs(data.clothing) do
-                    self.models[bid]:setWornItem(bodyLocation, nil)
+                    self.models[bid]:setWornItem(ItemBodyLocation.get(ResourceLocation.of(bodyLocation)), nil)
                     local item = BanditCompatibility.InstanceItem(itemType)
                     if item then
                         if data.tint and data.tint[bodyLocation] then
@@ -297,7 +297,7 @@ function BanditClanMain:onAvatarListChange()
                                 visual:setTint(immutableColor)
                             end
                         end
-                        self.models[bid]:setWornItem(bodyLocation, item)
+                        self.models[bid]:setWornItem(ItemBodyLocation.get(ResourceLocation.of(bodyLocation)), item)
                     end
                 end
             end

@@ -22,16 +22,16 @@ local function getItems(mode, internal, search)
                 if invItem then
                     if instanceof(invItem, "HandWeapon") then
                         local invItemType = WeaponType.getWeaponType(invItem)
-                        if internal == "primary" and invItemType == WeaponType.firearm then
+                        if internal == "primary" and invItemType == WeaponType.FIREARM then
                             table.insert(items, itemType)
-                        elseif internal == "secondary" and invItemType == WeaponType.handgun then
+                        elseif internal == "secondary" and invItemType == WeaponType.HANDGUN then
                             table.insert(items, itemType)
-                        elseif internal == "melee" and invItemType ~= WeaponType.firearm and invItemType ~= WeaponType.handgun then
+                        elseif internal == "melee" and invItemType ~= WeaponType.FIREARM and invItemType ~= WeaponType.HANDGUN then
                             table.insert(items, itemType)
                         end
                     elseif instanceof(invItem, "InventoryContainer") then
                         if internal == "bag"  then
-                            if invItem:canBeEquipped() == "Back" then
+                            if invItem:canBeEquipped() == ItemBodyLocation.get(ResourceLocation.of("Back")) then
                                 table.insert(items, itemType)
                             end
                         end
